@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import updater from 'electron-updater'
@@ -22,6 +22,11 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
     },
+  })
+  // external links (setup guide downloads etc.) open in the system browser
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('http')) shell.openExternal(url)
+    return { action: 'deny' }
   })
   if (process.env.VITE_DEV) {
     mainWindow.loadURL('http://localhost:5173')

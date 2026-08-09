@@ -214,6 +214,19 @@ function stepsPage() {
         <ol className="guide-steps">
           <li>
             <div className="guide-step-text">
+              <strong>Print and mount the pen attachment.</strong>
+              <p>
+                The pen rides in a printed holder on the toolhead.{' '}
+                <a href="https://sulf.github.io/handwriter-buddy/hardware/a1-pen-attachment-step.zip" target="_blank" rel="noreferrer">
+                  Download the printable parts
+                </a>{' '}
+                (six STEP files), print the tube, cap, spring, and the adapter that fits your pen, then
+                clip the tube onto the printhead. Already done? Skip ahead.
+              </p>
+            </div>
+          </li>
+          <li>
+            <div className="guide-step-text">
               <strong>Open the LAN settings on the printer.</strong>
               <p>On the printer's little screen, tap the gear (Settings), then tap <em>LAN Only</em>.</p>
             </div>

@@ -653,6 +653,11 @@ input[type='range'] {
   font-style: normal;
   color: #c9a86a;
 }
+.guide a {
+  color: #c9a86a;
+  text-underline-offset: 3px;
+}
+.guide a:hover { color: var(--text-light); }
 .guide-steps .guide-art {
   margin-top: 10px;
 }
