@@ -1,4 +1,5 @@
 import { CAP_HEIGHT, type TextLayout } from './hershey'
+import { localToMM, type SvgObject } from './svgobjects'
 
 export interface PlotSettings {
   /** capital-letter height on paper, mm — the physical size control */
@@ -102,7 +103,7 @@ export interface GcodeResult {
  * the front, so the origin is the text's top-left and lines advance toward
  * the front of the bed.
  */
-export function layoutToGcode(layout: TextLayout, s: PlotSettings): GcodeResult {
+export function layoutToGcode(layout: TextLayout, s: PlotSettings, objects: SvgObject[] = []): GcodeResult {
   const warnings: string[] = []
   const scale = s.letterHMM / CAP_HEIGHT
   const heightMM = layout.height * scale
@@ -140,13 +141,33 @@ export function layoutToGcode(layout: TextLayout, s: PlotSettings): GcodeResult 
     }
   }
 
+  // imported drawings, after the text, in list order
+  for (const obj of objects) {
+    for (const line of obj.polylines) {
+      const pts = line.map((p) => {
+        const [X, Y] = localToMM(obj, p)
+        minX = Math.min(minX, X); maxX = Math.max(maxX, X)
+        minY = Math.min(minY, Y); maxY = Math.max(maxY, Y)
+        return [X, Y] as [number, number]
+      })
+      if (pts.length < 2) continue
+      lines.push(`G1 X${fmt(pts[0][0])} Y${fmt(pts[0][1])} F${s.feedTravel}`)
+      lines.push(`G1 Z${fmt(drawZ)} F1200`)
+      for (let i = 1; i < pts.length; i++) {
+        lines.push(`G1 X${fmt(pts[i][0])} Y${fmt(pts[i][1])} F${s.feedDraw}`)
+      }
+      lines.push(`G1 Z${fmt(s.travelZ)} F1200`)
+    }
+  }
+
   // finish: lift the pen well clear and center the head over the bed
   lines.push(`G1 Z${fmt(Math.min(s.travelZ + 40, 120))} F3000`)
   lines.push(`G1 X${BED / 2} Y${BED / 2} F${s.feedTravel}`)
   lines.push('M400')
 
   const textWidthMM = layout.width * scale
-  if (layout.glyphs.length === 0) warnings.push('Nothing to plot — the message is empty.')
+  if (layout.glyphs.length === 0 && objects.length === 0)
+    warnings.push('Nothing to plot — the message is empty.')
   if (minX < 0 || minY < 0 || maxX > BED || maxY > BED) {
     warnings.push(
       `Plot exceeds the ${BED}×${BED} mm bed (X ${fmt(minX)}–${fmt(maxX)}, Y ${fmt(minY)}–${fmt(maxY)}). ` +

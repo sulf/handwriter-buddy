@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { SetupGuide } from './SetupGuide'
 import type { TextLayout } from './hershey'
+import type { SvgObject } from './svgobjects'
 import {
   bridge,
   gotoStartGcode,
@@ -19,9 +20,11 @@ interface PlotterPanelProps {
   onSettings: (s: PlotSettings) => void
   /** element in the stage that hosts the floating status pills */
   statusSlot: HTMLDivElement | null
+  /** imported SVG drawings to plot after the text */
+  objects: SvgObject[]
 }
 
-export function PlotterPanel({ layout, settings, onSettings, statusSlot }: PlotterPanelProps) {
+export function PlotterPanel({ layout, settings, onSettings, statusSlot, objects }: PlotterPanelProps) {
   const saved = useRef(loadStored())
   const [creds, setCreds] = useState<PlotterCreds>(saved.current.creds)
   const setSettings = onSettings
@@ -82,7 +85,7 @@ export function PlotterPanel({ layout, settings, onSettings, statusSlot }: Plott
     }
   }
 
-  const gcode = () => layoutToGcode(layout, settings)
+  const gcode = () => layoutToGcode(layout, settings, objects)
 
   const jogXY = (dx: number, dy: number) => {
     const move = ['G91', `G1 ${dx ? `X${dx}` : ''}${dx && dy ? ' ' : ''}${dy ? `Y${dy}` : ''} F3000`, 'G90', 'M400']
@@ -95,7 +98,7 @@ export function PlotterPanel({ layout, settings, onSettings, statusSlot }: Plott
     run(`Z → ${nz.toFixed(2)}`, () => bridge.gcode(['G90', `G1 Z${nz.toFixed(2)} F1200`, 'M400']))
   }
 
-  const g = layoutToGcode(layout, settings)
+  const g = layoutToGcode(layout, settings, objects)
   const plotting = state?.plot ?? null
   const connected = state?.connected ?? false
 
@@ -133,7 +136,7 @@ export function PlotterPanel({ layout, settings, onSettings, statusSlot }: Plott
           ) : (
             <button
               className="btn btn--primary"
-              disabled={busy || !connected || layout.glyphs.length === 0}
+              disabled={busy || !connected || (layout.glyphs.length === 0 && objects.length === 0)}
               onClick={() => run('Plot', () => bridge.plot(gcode().lines))}
             >
               {settings.dryRun ? 'Plot (dry)' : 'Plot'}
