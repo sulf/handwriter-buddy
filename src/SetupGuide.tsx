@@ -217,7 +217,7 @@ function stepsPage() {
               <strong>Print and mount the pen attachment.</strong>
               <p>
                 The pen rides in a printed holder on the toolhead.{' '}
-                <a href="https://sulf.github.io/handwriter-buddy/hardware/a1-pen-attachment-step.zip" target="_blank" rel="noreferrer">
+                <a href="https://handwriterbuddy.com/hardware/a1-pen-attachment-step.zip" target="_blank" rel="noreferrer">
                   Download the printable parts
                 </a>{' '}
                 (six STEP files), print the tube, cap, spring, and the adapter that fits your pen, then
