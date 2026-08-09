@@ -62,7 +62,8 @@
   h2 { font-size: 13px; letter-spacing: .28em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 18px; font-weight: 700; }
   p { font-size: 14px; color: var(--text-light); }
   .dim { color: var(--text-dim); }
-  .shot { width: 100%; border-radius: 12px; border: 1px solid var(--tray-line); box-shadow: 0 18px 44px rgba(0,0,0,.4); }
+  .shot { width: 100%; border-radius: 12px; border: 1px solid var(--tray-line); box-shadow: 0 18px 44px rgba(0,0,0,.4); display: block; }
+  .shot-caption { text-align: center; font-size: 12px; color: var(--text-dim); letter-spacing: .08em; margin-top: 12px; }
   .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
   .step { background: rgba(10,16,12,.4); border: 1px solid var(--tray-line); border-radius: 10px; padding: 18px; }
   .step b { display: block; margin-bottom: 6px; color: var(--paper); }
@@ -147,6 +148,11 @@
     </div>
     <p class="oss">Completely open source · MIT licensed</p>
   </div>
+
+  <section>
+    <img class="shot" src="writing-photo.jpg" alt="A Bambu A1 Mini with the pen attachment, having just written 'Handwriter Buddy' in cursive ink on paper">
+    <p class="shot-caption">Real ink. The printer wrote this.</p>
+  </section>
 
   <section>
     <h2>How it works</h2>
