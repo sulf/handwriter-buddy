@@ -68,18 +68,19 @@ export async function importSvg(file: File): Promise<SvgObject> {
       const step = len / n
       const ctm = el.getCTM()
       let line: [number, number][] = []
-      let prev: [number, number] | null = null
+      let prevLocal: [number, number] | null = null
       for (let k = 0; k <= n; k++) {
         const pt = el.getPointAtLength(Math.min(len, k * step))
-        const t = ctm ? new DOMPoint(pt.x, pt.y).matrixTransform(ctm) : pt
-        const p: [number, number] = [t.x, t.y]
-        // a big jump means a new subpath (pen lift), not a drawn segment
-        if (prev && Math.hypot(p[0] - prev[0], p[1] - prev[1]) > Math.max(step * 4, 0.5)) {
+        // jump detection must happen in the element's local units — the
+        // sampling step is a local length, and CTM scaling would otherwise
+        // make every segment of a scaled group look like a pen lift
+        if (prevLocal && Math.hypot(pt.x - prevLocal[0], pt.y - prevLocal[1]) > Math.max(step * 4, 0.5)) {
           if (line.length > 1) polylines.push(line)
           line = []
         }
-        line.push(p)
-        prev = p
+        prevLocal = [pt.x, pt.y]
+        const t = ctm ? new DOMPoint(pt.x, pt.y).matrixTransform(ctm) : pt
+        line.push([t.x, t.y])
       }
       if (line.length > 1) polylines.push(line)
     })
