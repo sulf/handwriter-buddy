@@ -76,16 +76,21 @@
   .asm-lbl { font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--text-dim); }
   .parts { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; margin-top: 14px; }
   .part-card {
-    display: grid; grid-template-columns: 12px 1fr; grid-template-rows: auto auto auto;
-    column-gap: 10px; row-gap: 3px; align-items: baseline;
+    display: grid; grid-template-rows: auto auto auto;
+    row-gap: 3px; align-items: baseline;
     background: rgba(10,16,12,.4); border: 1px solid var(--tray-line); border-radius: 10px;
     padding: 14px 16px; text-decoration: none; transition: border-color .15s;
   }
   .part-card:hover { border-color: var(--text-dim); }
-  .part-dot { width: 10px; height: 10px; border-radius: 50%; grid-row: 1; }
   .part-name { color: var(--paper); font-size: 13px; font-weight: 700; }
-  .part-desc { grid-column: 2; font-size: 12px; color: var(--text-dim); }
-  .part-meta { grid-column: 2; font-size: 11px; color: #c9a86a; letter-spacing: .04em; }
+  .part-desc { font-size: 12px; color: var(--text-dim); }
+  .part-dims { font-size: 11px; color: var(--text-dim); letter-spacing: .04em; }
+  .part-btn {
+    margin-top: 10px; text-align: center;
+    padding: 9px 12px; border-radius: 7px; font-size: 12px; letter-spacing: .05em;
+    background: var(--paper); color: var(--desk-deep); font-weight: 700;
+  }
+  .part-card:hover .part-btn { background: var(--rule); }
   @media (prefers-reduced-motion: reduce) { .hero-svg path { stroke-dashoffset: 0 !important; animation: none !important; } }
 </style>
 </head>
@@ -148,40 +153,40 @@
     <p class="dim">Six printable parts. Pick the adapter that fits your pen.</p>
 <div class="parts">
       <a class="part-card" href="https://github.com/sulf/handwriter-buddy/raw/main/hardware/A1%20Plotter%20Cap.step">
-        <span class="part-dot" style="background:#6fae7c"></span>
         <span class="part-name">Cap</span>
         <span class="part-desc">closes the top of the tube</span>
-        <span class="part-meta">53 × 74 × 12 mm · STEP ↓</span>
+        <span class="part-dims">53 × 74 × 12 mm</span>
+        <span class="part-btn">↓ Download STEP</span>
       </a>
       <a class="part-card" href="https://github.com/sulf/handwriter-buddy/raw/main/hardware/A1%20Plotter%20Spring.step">
-        <span class="part-dot" style="background:#c9a86a"></span>
         <span class="part-name">Printed spring</span>
         <span class="part-desc">keeps gentle pressure on the pen</span>
-        <span class="part-meta">48 × 42 × 20 mm · STEP ↓</span>
+        <span class="part-dims">48 × 42 × 20 mm</span>
+        <span class="part-btn">↓ Download STEP</span>
       </a>
       <a class="part-card" href="https://github.com/sulf/handwriter-buddy/raw/main/hardware/A1%20Plotter%20Tube.step">
-        <span class="part-dot" style="background:#e8e2d2"></span>
         <span class="part-name">Pen tube</span>
         <span class="part-desc">mounts on the toolhead</span>
-        <span class="part-meta">25 × 20 × 42 mm · STEP ↓</span>
+        <span class="part-dims">25 × 20 × 42 mm</span>
+        <span class="part-btn">↓ Download STEP</span>
       </a>
       <a class="part-card" href="https://github.com/sulf/handwriter-buddy/raw/main/hardware/A1%20Plotter%20Adapter%20S.step">
-        <span class="part-dot" style="background:#b3402e"></span>
         <span class="part-name">Adapter S</span>
         <span class="part-desc">small pen bore — pick one</span>
-        <span class="part-meta">25 × 20 × 13 mm · STEP ↓</span>
+        <span class="part-dims">25 × 20 × 13 mm</span>
+        <span class="part-btn">↓ Download STEP</span>
       </a>
       <a class="part-card" href="https://github.com/sulf/handwriter-buddy/raw/main/hardware/A1%20Plotter%20Adapter%20M.step">
-        <span class="part-dot" style="background:#d9986b"></span>
         <span class="part-name">Adapter M</span>
         <span class="part-desc">medium pen bore — pick one</span>
-        <span class="part-meta">25 × 20 × 24 mm · STEP ↓</span>
+        <span class="part-dims">25 × 20 × 24 mm</span>
+        <span class="part-btn">↓ Download STEP</span>
       </a>
       <a class="part-card" href="https://github.com/sulf/handwriter-buddy/raw/main/hardware/A1%20Plotter%20Adapter%20L.step">
-        <span class="part-dot" style="background:#7189cf"></span>
         <span class="part-name">Adapter L</span>
         <span class="part-desc">large pen bore — pick one</span>
-        <span class="part-meta">25 × 20 × 53 mm · STEP ↓</span>
+        <span class="part-dims">25 × 20 × 53 mm</span>
+        <span class="part-btn">↓ Download STEP</span>
       </a>
     </div>
     <div class="note"><b>Setup in one breath:</b> computer and printer on the same network, printer in
