@@ -52,6 +52,27 @@ Mount a pen, calibrate pen-down/pen-up Z with the jog pad, and plot.
 **Never home the printer with the pen mounted** — homing presses the toolhead
 into the bed.
 
+## Pen attachment hardware
+
+The [`hardware/`](hardware) folder contains printable STEP models for the A1
+Mini pen attachment:
+
+| Part | File |
+|---|---|
+| Pen tube (mounts on the toolhead) | [`A1 Plotter Tube.step`](hardware/A1%20Plotter%20Tube.step) |
+| Pen adapter, small bore | [`A1 Plotter Adapter S.step`](hardware/A1%20Plotter%20Adapter%20S.step) |
+| Pen adapter, medium bore | [`A1 Plotter Adapter M.step`](hardware/A1%20Plotter%20Adapter%20M.step) |
+| Pen adapter, large bore | [`A1 Plotter Adapter L.step`](hardware/A1%20Plotter%20Adapter%20L.step) |
+| Cap | [`A1 Plotter Cap.step`](hardware/A1%20Plotter%20Cap.step) |
+| Printed spring | [`A1 Plotter Spring.step`](hardware/A1%20Plotter%20Spring.step) |
+
+Pick the adapter that matches your pen's diameter. The STEP files are
+mesh-derived (converted from STL), so curved faces are finely faceted —
+dimensionally accurate for printing and measuring, but not parametric.
+
+**Never home the printer with the pen mounted** — homing presses the toolhead
+into the bed.
+
 ## How it talks to the printer
 
 The renderer can't speak MQTT-over-TLS, so a small Node bridge
