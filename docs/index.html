@@ -81,16 +81,15 @@
     background: rgba(10,16,12,.4); border: 1px solid var(--tray-line); border-radius: 10px;
     padding: 14px 16px; text-decoration: none; transition: border-color .15s;
   }
-  .part-card:hover { border-color: var(--text-dim); }
   .part-name { color: var(--paper); font-size: 13px; font-weight: 700; }
   .part-desc { font-size: 12px; color: var(--text-dim); }
   .part-dims { font-size: 11px; color: var(--text-dim); letter-spacing: .04em; }
-  .part-btn {
-    margin-top: 10px; text-align: center;
-    padding: 9px 12px; border-radius: 7px; font-size: 12px; letter-spacing: .05em;
+  .btn-dl {
+    display: block; margin-top: 14px; text-align: center; text-decoration: none;
+    padding: 15px 18px; border-radius: 9px; font-size: 14px; letter-spacing: .05em;
     background: var(--paper); color: var(--desk-deep); font-weight: 700;
   }
-  .part-card:hover .part-btn { background: var(--rule); }
+  .btn-dl:hover { background: var(--rule); color: var(--desk-deep); }
   @media (prefers-reduced-motion: reduce) { .hero-svg path { stroke-dashoffset: 0 !important; animation: none !important; } }
 </style>
 </head>
@@ -152,43 +151,38 @@
     <h2>Print the pen attachment</h2>
     <p class="dim">Six printable parts. Pick the adapter that fits your pen.</p>
 <div class="parts">
-      <a class="part-card" href="https://github.com/sulf/handwriter-buddy/raw/main/hardware/A1%20Plotter%20Cap.step">
+      <div class="part-card">
         <span class="part-name">Cap</span>
         <span class="part-desc">closes the top of the tube</span>
         <span class="part-dims">53 × 74 × 12 mm</span>
-        <span class="part-btn">↓ Download STEP</span>
-      </a>
-      <a class="part-card" href="https://github.com/sulf/handwriter-buddy/raw/main/hardware/A1%20Plotter%20Spring.step">
+      </div>
+      <div class="part-card">
         <span class="part-name">Printed spring</span>
         <span class="part-desc">keeps gentle pressure on the pen</span>
         <span class="part-dims">48 × 42 × 20 mm</span>
-        <span class="part-btn">↓ Download STEP</span>
-      </a>
-      <a class="part-card" href="https://github.com/sulf/handwriter-buddy/raw/main/hardware/A1%20Plotter%20Tube.step">
+      </div>
+      <div class="part-card">
         <span class="part-name">Pen tube</span>
         <span class="part-desc">mounts on the toolhead</span>
         <span class="part-dims">25 × 20 × 42 mm</span>
-        <span class="part-btn">↓ Download STEP</span>
-      </a>
-      <a class="part-card" href="https://github.com/sulf/handwriter-buddy/raw/main/hardware/A1%20Plotter%20Adapter%20S.step">
+      </div>
+      <div class="part-card">
         <span class="part-name">Adapter S</span>
         <span class="part-desc">small pen bore — pick one</span>
         <span class="part-dims">25 × 20 × 13 mm</span>
-        <span class="part-btn">↓ Download STEP</span>
-      </a>
-      <a class="part-card" href="https://github.com/sulf/handwriter-buddy/raw/main/hardware/A1%20Plotter%20Adapter%20M.step">
+      </div>
+      <div class="part-card">
         <span class="part-name">Adapter M</span>
         <span class="part-desc">medium pen bore — pick one</span>
         <span class="part-dims">25 × 20 × 24 mm</span>
-        <span class="part-btn">↓ Download STEP</span>
-      </a>
-      <a class="part-card" href="https://github.com/sulf/handwriter-buddy/raw/main/hardware/A1%20Plotter%20Adapter%20L.step">
+      </div>
+      <div class="part-card">
         <span class="part-name">Adapter L</span>
         <span class="part-desc">large pen bore — pick one</span>
         <span class="part-dims">25 × 20 × 53 mm</span>
-        <span class="part-btn">↓ Download STEP</span>
-      </a>
+      </div>
     </div>
+    <a class="btn-dl" href="hardware/a1-pen-attachment-step.zip" download>↓ Download all six parts — STEP, 11 MB</a>
     <div class="note"><b>Setup in one breath:</b> computer and printer on the same network, printer in
     LAN&nbsp;Only&nbsp;Mode with Developer&nbsp;Mode on — the app walks you through it with an illustrated guide.
     <b>Never home the printer with the pen mounted.</b></div>

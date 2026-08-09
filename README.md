@@ -54,17 +54,17 @@ into the bed.
 
 ## Pen attachment hardware
 
-The [`hardware/`](hardware) folder contains printable STEP models for the A1
+The [`hardware/`](docs/hardware) folder contains printable STEP models for the A1
 Mini pen attachment:
 
 | Part | File |
 |---|---|
-| Pen tube (mounts on the toolhead) | [`A1 Plotter Tube.step`](hardware/A1%20Plotter%20Tube.step) |
-| Pen adapter, small bore | [`A1 Plotter Adapter S.step`](hardware/A1%20Plotter%20Adapter%20S.step) |
-| Pen adapter, medium bore | [`A1 Plotter Adapter M.step`](hardware/A1%20Plotter%20Adapter%20M.step) |
-| Pen adapter, large bore | [`A1 Plotter Adapter L.step`](hardware/A1%20Plotter%20Adapter%20L.step) |
-| Cap | [`A1 Plotter Cap.step`](hardware/A1%20Plotter%20Cap.step) |
-| Printed spring | [`A1 Plotter Spring.step`](hardware/A1%20Plotter%20Spring.step) |
+| Pen tube (mounts on the toolhead) | [`A1 Plotter Tube.step`](docs/hardware/A1%20Plotter%20Tube.step) |
+| Pen adapter, small bore | [`A1 Plotter Adapter S.step`](docs/hardware/A1%20Plotter%20Adapter%20S.step) |
+| Pen adapter, medium bore | [`A1 Plotter Adapter M.step`](docs/hardware/A1%20Plotter%20Adapter%20M.step) |
+| Pen adapter, large bore | [`A1 Plotter Adapter L.step`](docs/hardware/A1%20Plotter%20Adapter%20L.step) |
+| Cap | [`A1 Plotter Cap.step`](docs/hardware/A1%20Plotter%20Cap.step) |
+| Printed spring | [`A1 Plotter Spring.step`](docs/hardware/A1%20Plotter%20Spring.step) |
 
 Pick the adapter that matches your pen's diameter. The STEP files are
 mesh-derived (converted from STL), so curved faces are finely faceted —
