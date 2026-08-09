@@ -64,6 +64,28 @@
   }
   .note b { color: var(--text-light); }
   footer { margin-top: 72px; padding-top: 20px; border-top: 1px solid var(--tray-line); font-size: 12px; color: var(--text-dim); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+
+  .asm-card {
+    background: linear-gradient(180deg, rgba(10,16,12,.55), rgba(10,16,12,.35));
+    border: 1px solid var(--tray-line); border-radius: 12px; overflow: hidden; margin-top: 16px;
+  }
+  #asm { width: 100%; height: 430px; display: block; cursor: grab; touch-action: pan-y; }
+  #asm:active { cursor: grabbing; }
+  .asm-ui { display: flex; align-items: center; gap: 12px; padding: 12px 18px 16px; }
+  .asm-ui input { flex: 1; accent-color: var(--paper); }
+  .asm-lbl { font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--text-dim); }
+  .parts { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; margin-top: 14px; }
+  .part-card {
+    display: grid; grid-template-columns: 12px 1fr; grid-template-rows: auto auto auto;
+    column-gap: 10px; row-gap: 3px; align-items: baseline;
+    background: rgba(10,16,12,.4); border: 1px solid var(--tray-line); border-radius: 10px;
+    padding: 14px 16px; text-decoration: none; transition: border-color .15s;
+  }
+  .part-card:hover { border-color: var(--text-dim); }
+  .part-dot { width: 10px; height: 10px; border-radius: 50%; grid-row: 1; }
+  .part-name { color: var(--paper); font-size: 13px; font-weight: 700; }
+  .part-desc { grid-column: 2; font-size: 12px; color: var(--text-dim); }
+  .part-meta { grid-column: 2; font-size: 11px; color: #c9a86a; letter-spacing: .04em; }
   @media (prefers-reduced-motion: reduce) { .hero-svg path { stroke-dashoffset: 0 !important; animation: none !important; } }
 </style>
 </head>
@@ -123,15 +145,16 @@
 
   <section>
     <h2>Print the pen attachment</h2>
-    <p class="dim">Six printable STEP models. Pick the adapter bore that fits your pen.</p>
-    <table>
-      <tr><td>Pen tube (mounts on the toolhead)</td><td><a href="https://github.com/sulf/handwriter-buddy/raw/main/hardware/A1%20Plotter%20Tube.step">Tube.step</a></td></tr>
-      <tr><td>Adapter — small bore</td><td><a href="https://github.com/sulf/handwriter-buddy/raw/main/hardware/A1%20Plotter%20Adapter%20S.step">Adapter S.step</a></td></tr>
-      <tr><td>Adapter — medium bore</td><td><a href="https://github.com/sulf/handwriter-buddy/raw/main/hardware/A1%20Plotter%20Adapter%20M.step">Adapter M.step</a></td></tr>
-      <tr><td>Adapter — large bore</td><td><a href="https://github.com/sulf/handwriter-buddy/raw/main/hardware/A1%20Plotter%20Adapter%20L.step">Adapter L.step</a></td></tr>
-      <tr><td>Cap</td><td><a href="https://github.com/sulf/handwriter-buddy/raw/main/hardware/A1%20Plotter%20Cap.step">Cap.step</a></td></tr>
-      <tr><td>Printed spring</td><td><a href="https://github.com/sulf/handwriter-buddy/raw/main/hardware/A1%20Plotter%20Spring.step">Spring.step</a></td></tr>
-    </table>
+    <p class="dim">Six printable parts. Drag to spin, slide to assemble — hover a part card to find it.</p>
+    <div class="asm-card">
+      <canvas id="asm"></canvas>
+      <div class="asm-ui">
+        <span class="asm-lbl">assembled</span>
+        <input id="explode" type="range" min="0" max="1" step="0.01" value="0.75" aria-label="Explode assembly">
+        <span class="asm-lbl">exploded</span>
+      </div>
+    </div>
+    <div class="parts" id="parts"></div>
     <div class="note"><b>Setup in one breath:</b> computer and printer on the same network, printer in
     LAN&nbsp;Only&nbsp;Mode with Developer&nbsp;Mode on — the app walks you through it with an illustrated guide.
     <b>Never home the printer with the pen mounted.</b></div>
@@ -158,6 +181,102 @@
   requestAnimationFrame(() => requestAnimationFrame(() => {
     for (const p of paths) p.style.strokeDashoffset = 0;
   }));
+</script>
+
+<script type="importmap">
+{"imports":{"three":"https://unpkg.com/three@0.170.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.170.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+const RAW = 'https://github.com/sulf/handwriter-buddy/raw/main/hardware/';
+const PARTS = {
+  cap:      { label: 'Cap',                 desc: 'closes the top of the tube',        color: 0x6fae7c, file: 'A1%20Plotter%20Cap.step',       dims: '53 × 74 × 12 mm', x: 0,   a: 66,  e: 118 },
+  spring:   { label: 'Printed spring',      desc: 'keeps gentle pressure on the pen',  color: 0xc9a86a, file: 'A1%20Plotter%20Spring.step',    dims: '48 × 42 × 20 mm', x: 0,   a: 44,  e: 82 },
+  tube:     { label: 'Pen tube',            desc: 'mounts on the toolhead',            color: 0xe8e2d2, file: 'A1%20Plotter%20Tube.step',      dims: '25 × 20 × 42 mm', x: 0,   a: 0,   e: 18 },
+  adapterS: { label: 'Adapter S',           desc: 'small pen bore — pick one',         color: 0xb3402e, file: 'A1%20Plotter%20Adapter%20S.step', dims: '25 × 20 × 13 mm', x: -34, a: -22, e: -40 },
+  adapterM: { label: 'Adapter M',           desc: 'medium pen bore — pick one',        color: 0xd9986b, file: 'A1%20Plotter%20Adapter%20M.step', dims: '25 × 20 × 24 mm', x: 0,   a: -30, e: -52 },
+  adapterL: { label: 'Adapter L',           desc: 'large pen bore — pick one',         color: 0x7189cf, file: 'A1%20Plotter%20Adapter%20L.step', dims: '25 × 20 × 53 mm', x: 34,  a: -58, e: -84 },
+};
+
+const canvas = document.getElementById('asm');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(38, 2, 1, 2000);
+camera.position.set(150, 70, 190);
+const controls = new OrbitControls(camera, canvas);
+controls.enableZoom = false;
+controls.enablePan = false;
+controls.autoRotate = true;
+controls.autoRotateSpeed = 1.1;
+controls.target.set(0, 26, 0);
+
+scene.add(new THREE.HemisphereLight(0xfff7e8, 0x22302a, 1.2));
+const key = new THREE.DirectionalLight(0xffffff, 1.6); key.position.set(120, 200, 140); scene.add(key);
+const fill = new THREE.DirectionalLight(0x9fb8ff, 0.5); fill.position.set(-140, 60, -100); scene.add(fill);
+
+const meshes = {};
+new GLTFLoader().load('models/parts.glb', (g) => {
+  g.scene.traverse((n) => {
+    if (!n.isMesh) return;
+    const cfg = PARTS[n.name] ?? PARTS[n.parent?.name];
+    if (!cfg) return;
+    const holder = new THREE.Group();
+    n.geometry.computeVertexNormals();
+    const mesh = new THREE.Mesh(n.geometry, new THREE.MeshStandardMaterial({
+      color: cfg.color, roughness: 0.55, metalness: 0.05,
+    }));
+    mesh.rotation.x = -Math.PI / 2; // Z-up mesh → Y-up scene
+    holder.add(mesh);
+    holder.position.set(cfg.x, cfg.a, 0);
+    scene.add(holder);
+    meshes[Object.keys(PARTS).find((k) => PARTS[k] === cfg)] = { holder, mesh, cfg };
+  });
+  update(+slider.value);
+}, undefined, (e) => { console.log('GLTF ERROR', e?.message ?? e); });
+
+const slider = document.getElementById('explode');
+function update(t) {
+  for (const { holder, cfg } of Object.values(meshes)) {
+    holder.position.y = cfg.a + (cfg.e - cfg.a) * t;
+  }
+  resize();
+  renderer.render(scene, camera); // paint even if rAF is throttled
+}
+slider.addEventListener('input', () => update(+slider.value));
+
+function resize() {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  if (canvas.width !== w * renderer.getPixelRatio()) {
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+}
+(function loop() {
+  requestAnimationFrame(loop);
+  resize();
+  controls.update();
+  renderer.render(scene, camera);
+})();
+
+// part cards double as downloads + highlighters
+const grid = document.getElementById('parts');
+for (const [k, cfg] of Object.entries(PARTS)) {
+  const card = document.createElement('a');
+  card.className = 'part-card';
+  card.href = RAW + cfg.file;
+  card.innerHTML = `<span class="part-dot" style="background:#${cfg.color.toString(16).padStart(6,'0')}"></span>
+    <span class="part-name">${cfg.label}</span>
+    <span class="part-desc">${cfg.desc}</span>
+    <span class="part-meta">${cfg.dims} · STEP ↓</span>`;
+  card.addEventListener('mouseenter', () => meshes[k]?.mesh.material.emissive.setHex(0x333333));
+  card.addEventListener('mouseleave', () => meshes[k]?.mesh.material.emissive.setHex(0)); 
+  grid.appendChild(card);
+}
 </script>
 </body>
 </html>
