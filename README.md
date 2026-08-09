@@ -4,7 +4,7 @@ Turn a Bambu Lab **A1 Mini** with a pen attachment into a handwriting machine.
 Type a message, aim it on a true-scale preview of the print bed, press **Plot**
 — and a real pen writes it in connected cursive.
 
-![Handwriter Buddy](build/icon-1024.png)
+![Handwriter Buddy — bed preview with handwriting and controls](docs/screenshot.png)
 
 ## Features
 
