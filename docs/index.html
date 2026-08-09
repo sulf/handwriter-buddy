@@ -206,13 +206,13 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true 
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(38, 2, 1, 2000);
-camera.position.set(150, 70, 190);
+camera.position.set(175, 95, 225);
 const controls = new OrbitControls(camera, canvas);
 controls.enableZoom = false;
 controls.enablePan = false;
 controls.autoRotate = true;
 controls.autoRotateSpeed = 1.1;
-controls.target.set(0, 26, 0);
+controls.target.set(0, 22, 0);
 
 scene.add(new THREE.HemisphereLight(0xfff7e8, 0x22302a, 1.2));
 const key = new THREE.DirectionalLight(0xffffff, 1.6); key.position.set(120, 200, 140); scene.add(key);
