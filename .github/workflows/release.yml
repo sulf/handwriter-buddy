@@ -1,0 +1,51 @@
+# Builds and publishes a GitHub Release whenever package.json's version
+# changes on main (i.e. no tag v<version> exists yet).
+name: release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  release:
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Detect version change
+        id: v
+        run: |
+          V=$(node -p "require('./package.json').version")
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          if git ls-remote --tags origin "refs/tags/v$V" | grep -q .; then
+            echo "new=false" >> "$GITHUB_OUTPUT"
+            echo "v$V already released"
+          else
+            echo "new=true" >> "$GITHUB_OUTPUT"
+            echo "v$V is new — releasing"
+          fi
+
+      - name: Install
+        if: steps.v.outputs.new == 'true'
+        run: npm ci
+
+      - name: Build and publish release
+        if: steps.v.outputs.new == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # no signing certificate in CI — build unsigned
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npx electron-builder --mac --publish always
+
+      - name: Tag version
+        if: steps.v.outputs.new == 'true'
+        run: |
+          git tag "v${{ steps.v.outputs.version }}"
+          git push origin "v${{ steps.v.outputs.version }}"
