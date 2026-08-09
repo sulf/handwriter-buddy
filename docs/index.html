@@ -54,8 +54,10 @@
     font-size: 14px; letter-spacing: .05em; border: 1.5px solid var(--desk-deep);
   }
   .btn-primary { background: var(--desk-deep); color: var(--paper); }
+  .btn-primary:hover, .btn-primary:visited { color: var(--paper); }
   .btn-primary:hover { background: var(--desk); }
   .btn-ghost { color: var(--desk-deep); display: inline-flex; align-items: center; gap: 9px; }
+  .btn-ghost:hover, .btn-ghost:visited { color: var(--desk-deep); }
   .btn-ghost:hover { background: rgba(0,0,0,.06); }
   .oss { margin-top: 20px; font-size: 12px; letter-spacing: .08em; color: #8a8474; }
   section { margin-top: 64px; }
@@ -71,8 +73,8 @@
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   td { padding: 10px 8px; border-bottom: 1px solid var(--tray-line); }
   td:last-child { text-align: right; white-space: nowrap; }
-  a { color: #c9a86a; }
-  a:hover { color: var(--paper); }
+  a:not([class]) { color: #c9a86a; }
+  a:not([class]):hover { color: var(--paper); }
   .note {
     background: rgba(10,16,12,.4); border: 1px solid var(--tray-line); border-radius: 10px;
     padding: 16px 18px; font-size: 13px; color: var(--text-dim); margin-top: 16px;
