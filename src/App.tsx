@@ -309,11 +309,11 @@ export default function App() {
           <input
             ref={fileRef}
             type="file"
-            accept=".svg,image/svg+xml"
+            accept=".svg"
             multiple
             hidden
             onChange={async (e) => {
-              const files = Array.from(e.target.files ?? [])
+              const files = Array.from(e.target.files ?? []).filter((f) => /\.svg$/i.test(f.name))
               e.target.value = ''
               for (const f of files) {
                 try {
