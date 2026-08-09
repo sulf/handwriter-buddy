@@ -32,6 +32,12 @@ jobs:
             echo "v$V is new — releasing"
           fi
 
+      - name: Tag version
+        if: steps.v.outputs.new == 'true'
+        run: |
+          git tag "v${{ steps.v.outputs.version }}"
+          git push origin "v${{ steps.v.outputs.version }}"
+
       - name: Install
         if: steps.v.outputs.new == 'true'
         run: npm ci
@@ -43,9 +49,3 @@ jobs:
           # no signing certificate in CI — build unsigned
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
         run: npx electron-builder --mac --publish always
-
-      - name: Tag version
-        if: steps.v.outputs.new == 'true'
-        run: |
-          git tag "v${{ steps.v.outputs.version }}"
-          git push origin "v${{ steps.v.outputs.version }}"
