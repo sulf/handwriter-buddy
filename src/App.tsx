@@ -305,7 +305,7 @@ export default function App() {
             />
           </label>
           <label className="field">
-            <span>line height</span>
+            <span>line height · {plotSettings.lineHeight.toFixed(2)}×</span>
             <input
               type="range"
               min="0.7"
