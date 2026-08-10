@@ -298,7 +298,7 @@ export default function App() {
             <input
               type="range"
               min="1.5"
-              max="14"
+              max="40"
               step="0.5"
               value={plotSettings.letterHMM}
               onChange={(e) => setPlotSettings({ ...plotSettings, letterHMM: Number(e.target.value) })}
