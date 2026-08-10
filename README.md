@@ -64,6 +64,23 @@ into the bed.
 
 ## Pen attachment hardware
 
+### Ender 3
+
+Any pen mount that holds the pen rigidly next to the nozzle works — pick the
+one matching your toolhead:
+
+| Ender 3 variant | Mount |
+|---|---|
+| Ender 3 (stock fan shroud) | [Snap-fit pen holder by pascalmakes](https://www.thingiverse.com/thing:3365530) — no screws, clips onto the fan housing |
+| Ender 3 / Pro | [Pen holder with diameter adapters by horatio1989](https://www.thingiverse.com/thing:4645372) — 8–16 mm pens |
+| Ender 3 (universal, screws into the hotend cover) | [Universal pen mount by Giorgio Miglia](https://www.printables.com/model/438157-ender-3-universal-pen-mount-plotter) |
+| Ender 3 V3 KE | [Pen holder by 3D PrintVerse](https://www.printables.com/model/1598491-pen-holder-for-ender-3-v3-ke) |
+
+Mount the pen so its tip sits **above** the nozzle while homing (or home
+before mounting the pen), then calibrate pen-down/pen-up Z with the jog pad.
+
+### A1 Mini
+
 The [`hardware/`](docs/hardware) folder contains printable STEP models for the A1
 Mini pen attachment:
 
