@@ -196,6 +196,23 @@ input[type='range'] {
   color: var(--text-dim);
   letter-spacing: 0.04em;
 }
+.pl-hint {
+  margin: 0;
+  font-size: 10.5px;
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+}
+.pl-portpick {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
+}
+.pl-portpick .btn {
+  text-align: left;
+  font-size: 11px;
+}
 .hud-state {
   display: flex;
   align-items: center;

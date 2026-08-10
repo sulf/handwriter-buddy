@@ -1,8 +1,8 @@
 # Handwriter Buddy
 
-Turn a Bambu Lab **A1 Mini** with a pen attachment into a handwriting machine.
-Type a message, aim it on a true-scale preview of the print bed, press **Plot**
-— and a real pen writes it in connected cursive.
+Turn a Bambu Lab **A1 Mini** or a Creality **Ender 3** with a pen attachment
+into a handwriting machine. Type a message, aim it on a true-scale preview of
+the print bed, press **Plot** — and a real pen writes it in connected cursive.
 
 ![Handwriter Buddy — bed preview with handwriting and controls](docs/screenshot.png)
 
@@ -14,10 +14,10 @@ Type a message, aim it on a true-scale preview of the print bed, press **Plot**
 - **True-scale bed preview** — a 180×180 mm canvas; click or drag to place the
   text's top-left corner, size in real millimeters of cap height, automatic
   wrapping at the bed edge, adjustable line height.
-- **Direct printer control** — connects to the A1 Mini over LAN (MQTT), streams
-  G-code paced to real motion time so nothing is dropped, with jog controls,
-  guided pen-height calibration, dry-run mode, and one-click stop that lifts
-  the pen.
+- **Direct printer control** — connects to the A1 Mini over LAN (MQTT) or to
+  an Ender 3 over USB (Web Serial), streams G-code paced so nothing is
+  dropped, with jog controls, guided pen-height calibration, dry-run mode,
+  and one-click stop that lifts the pen.
 - **Built-in setup guide** — an illustrated walkthrough for putting the printer
   into LAN-Only + Developer Mode and connecting.
 
@@ -40,6 +40,8 @@ npm run app:dev    # electron shell pointed at the dev server
 
 ## Printer setup
 
+### A1 Mini (LAN)
+
 The app includes a step-by-step guide (the "setup guide" link), in short:
 
 1. Computer and printer must be on the **same network**.
@@ -47,6 +49,14 @@ The app includes a step-by-step guide (the "setup guide" link), in short:
    **Developer Mode** (required — without it the printer ignores motion
    commands).
 3. Enter the IP, access code, and serial (Settings → Device → Printer SN).
+
+### Ender 3 (USB)
+
+Pick **Ender 3** under printer & calibration, plug the printer in over USB,
+and click **Connect USB** (115200 baud, plain Marlin G-code over Web Serial —
+works in Chrome/Edge and in the desktop app; stock Creality firmware is fine).
+Home the printhead once after power-on so the printer knows where it is, then
+calibrate pen height as usual.
 
 Mount a pen, calibrate pen-down/pen-up Z with the jog pad, and plot.
 **Never home the printer with the pen mounted** — homing presses the toolhead

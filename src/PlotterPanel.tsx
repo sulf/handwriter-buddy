@@ -1,17 +1,20 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import type { SerialPortChoice } from './App'
 import { SetupGuide } from './SetupGuide'
 import type { TextLayout } from './hershey'
+import { marlin } from './marlin'
 import type { SvgObject } from './svgobjects'
 import {
   bridge,
   gotoStartGcode,
   layoutToGcode,
-  loadStored,
-  LS_KEY,
+  PRINTERS,
   type BridgeState,
   type PlotSettings,
   type PlotterCreds,
+  type PlotterDriver,
+  type PrinterKind,
 } from './plotter'
 
 interface PlotterPanelProps {
@@ -22,26 +25,51 @@ interface PlotterPanelProps {
   statusSlot: HTMLDivElement | null
   /** imported SVG drawings to plot after the text */
   objects: SvgObject[]
+  printer: PrinterKind
+  onPrinter: (k: PrinterKind) => void
+  creds: PlotterCreds
+  onCreds: (c: PlotterCreds) => void
+  /** square bed side of the selected printer, mm */
+  bed: number
 }
 
-export function PlotterPanel({ layout, settings, onSettings, statusSlot, objects }: PlotterPanelProps) {
-  const saved = useRef(loadStored())
-  const [creds, setCreds] = useState<PlotterCreds>(saved.current.creds)
+export function PlotterPanel({ layout, settings, onSettings, statusSlot, objects, printer, onPrinter, creds, onCreds, bed }: PlotterPanelProps) {
+  const setCreds = onCreds
   const setSettings = onSettings
   const [state, setState] = useState<BridgeState | null>(null)
   const [bridgeUp, setBridgeUp] = useState(false)
+  const [serial, setSerial] = useState(marlin.state)
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState('')
   const [step, setStep] = useState(1)
   const [guideOpen, setGuideOpen] = useState(false)
   /** tracked absolute Z; null until "Z → 10" establishes a known height */
   const [zPos, setZPos] = useState<number | null>(null)
+  /** two-click Home confirmation (window.confirm is unreliable in Electron) */
+  const [homeArmed, setHomeArmed] = useState(false)
+  const homeArmTimer = useRef(0)
+
+  const isSerial = PRINTERS[printer].link === 'serial'
+  /** ports offered by the Electron main process while requestPort is pending */
+  const [portChoices, setPortChoices] = useState<SerialPortChoice[] | null>(null)
+
+  useEffect(() => marlin.subscribe(() => setSerial(marlin.state)), [])
 
   useEffect(() => {
-    localStorage.setItem(LS_KEY, JSON.stringify({ creds, settings }))
-  }, [creds, settings])
+    window.hwb?.onSerialPorts?.((ports) => {
+      // USB adapters first, Bluetooth/debug consoles last
+      const score = (p: SerialPortChoice) => (/usbserial|usbmodem/i.test(p.portName) ? 0 : 1)
+      setPortChoices([...ports].sort((a, b) => score(a) - score(b)))
+    })
+  }, [])
+
+  const pickPort = (portId: string) => {
+    window.hwb?.chooseSerialPort?.(portId)
+    setPortChoices(null)
+  }
 
   useEffect(() => {
+    if (isSerial) return // the bridge only serves the LAN printer
     let alive = true
     const poll = async () => {
       try {
@@ -63,7 +91,7 @@ export function PlotterPanel({ layout, settings, onSettings, statusSlot, objects
       alive = false
       clearInterval(id)
     }
-  }, [])
+  }, [isSerial])
 
   const noteTimer = useRef(0)
   const flashNote = (msg: string) => {
@@ -85,22 +113,24 @@ export function PlotterPanel({ layout, settings, onSettings, statusSlot, objects
     }
   }
 
-  const gcode = () => layoutToGcode(layout, settings, objects)
+  const driver: PlotterDriver = isSerial ? marlin : bridge
+  const gcode = () => layoutToGcode(layout, settings, bed, objects)
 
   const jogXY = (dx: number, dy: number) => {
     const move = ['G91', `G1 ${dx ? `X${dx}` : ''}${dx && dy ? ' ' : ''}${dy ? `Y${dy}` : ''} F3000`, 'G90', 'M400']
-    run(`Jog ${dx ? `X${dx > 0 ? '+' : ''}${dx}` : `Y${dy > 0 ? '+' : ''}${dy}`}`, () => bridge.gcode(move))
+    run(`Jog ${dx ? `X${dx > 0 ? '+' : ''}${dx}` : `Y${dy > 0 ? '+' : ''}${dy}`}`, () => driver.gcode(move))
   }
 
   const zTo = (z: number) => {
     const nz = Math.max(0, Math.round(z * 100) / 100)
     setZPos(nz)
-    run(`Z → ${nz.toFixed(2)}`, () => bridge.gcode(['G90', `G1 Z${nz.toFixed(2)} F1200`, 'M400']))
+    run(`Z → ${nz.toFixed(2)}`, () => driver.gcode(['G90', `G1 Z${nz.toFixed(2)} F1200`, 'M400']))
   }
 
-  const g = layoutToGcode(layout, settings, objects)
-  const plotting = state?.plot ?? null
-  const connected = state?.connected ?? false
+  const g = layoutToGcode(layout, settings, bed, objects)
+  const plotting = (isSerial ? serial.plot : state?.plot) ?? null
+  const connected = isSerial ? serial.connected : (state?.connected ?? false)
+  const lastError = isSerial ? serial.error : state?.error
 
   const num = (key: keyof PlotSettings, label: string, step = 1) => (
     <label className="field field--num">
@@ -118,26 +148,30 @@ export function PlotterPanel({ layout, settings, onSettings, statusSlot, objects
     ? { cls: 'hud-state--busy', icon: '⚡', label: `plotting ${plotting.sent}/${plotting.total}` }
     : connected
       ? { cls: 'hud-state--ok', icon: '●', label: 'ready' }
-      : bridgeUp
-        ? { cls: 'hud-state--warn', icon: '◌', label: 'not connected' }
-        : { cls: 'hud-state--err', icon: '○', label: 'bridge offline' }
+      : isSerial
+        ? serial.supported
+          ? { cls: 'hud-state--warn', icon: '◌', label: 'not connected' }
+          : { cls: 'hud-state--err', icon: '○', label: 'Web Serial unavailable' }
+        : bridgeUp
+          ? { cls: 'hud-state--warn', icon: '◌', label: 'not connected' }
+          : { cls: 'hud-state--err', icon: '○', label: 'bridge offline' }
 
   return (
     <div className="plotter">
       <div className="pl-sec">
         <div className="pl-main-actions">
-          <button className="btn" disabled={busy || !connected || !!plotting} onClick={() => run('Move to crosshair', () => bridge.gcode(gotoStartGcode(layout, settings).lines))}>
+          <button className="btn" disabled={busy || !connected || !!plotting} onClick={() => run('Move to crosshair', () => driver.gcode(gotoStartGcode(layout, settings).lines))}>
             Move to crosshair
           </button>
           {plotting ? (
-            <button className="btn btn--stop" onClick={() => run('Stop', () => bridge.stop())}>
+            <button className="btn btn--stop" onClick={() => run('Stop', () => driver.stop())}>
               STOP
             </button>
           ) : (
             <button
               className="btn btn--primary"
               disabled={busy || !connected || (layout.glyphs.length === 0 && objects.length === 0)}
-              onClick={() => run('Plot', () => bridge.plot(gcode().lines))}
+              onClick={() => run('Plot', () => driver.plot(gcode().lines))}
             >
               {settings.dryRun ? 'Plot (dry)' : 'Plot'}
             </button>
@@ -146,11 +180,11 @@ export function PlotterPanel({ layout, settings, onSettings, statusSlot, objects
         <div className="pl-statusline">
           <span className={`hud-state ${hudState.cls}`}>
             <span>{hudState.icon}</span>
-            A1 Mini · {hudState.label}
+            {PRINTERS[printer].name} · {hudState.label}
           </span>
-          {connected && state?.ip ? (
-            <span className="pl-status-ip">{state.ip}</span>
-          ) : (
+          {connected && (isSerial ? serial.firmware || serial.port : state?.ip) ? (
+            <span className="pl-status-ip">{isSerial ? serial.firmware ?? serial.port : state?.ip}</span>
+          ) : isSerial ? null : (
             <button className="guide-link" onClick={() => setGuideOpen(true)}>
               setup guide
             </button>
@@ -178,7 +212,7 @@ export function PlotterPanel({ layout, settings, onSettings, statusSlot, objects
               {g.warnings.map((w) => (
                 <div key={w} className="pill pill--warn">{w}</div>
               ))}
-              {state?.error && !connected && <div className="pill pill--warn">{state.error}</div>}
+              {lastError && !connected && <div className="pill pill--warn">{lastError}</div>}
             </>,
             statusSlot,
           )}
@@ -187,6 +221,46 @@ export function PlotterPanel({ layout, settings, onSettings, statusSlot, objects
       <details className="pl-conn">
         <summary>printer &amp; calibration</summary>
         <div className="pl-conn-body">
+          <div className="pl-group">
+            <span className="sec-title">printer</span>
+            <div className="jog-steps">
+              {(Object.keys(PRINTERS) as PrinterKind[]).map((k) => (
+                <button key={k} className={`chip ${printer === k ? 'chip--on' : ''}`} onClick={() => onPrinter(k)}>
+                  {PRINTERS[k].name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {isSerial ? (
+            <div className="pl-group">
+              <span className="sec-title">connection · USB</span>
+              <button
+                className="btn"
+                disabled={busy || !serial.supported}
+                onClick={() => run('Connect', () => marlin.connect())}
+              >
+                {connected ? 'Reconnect USB' : 'Connect USB'}
+              </button>
+              {portChoices && (
+                <div className="pl-portpick">
+                  <span className="sec-title">choose the printer's port</span>
+                  {portChoices.map((p) => (
+                    <button key={p.portId} className="btn btn--small" onClick={() => pickPort(p.portId)}>
+                      {p.portName}
+                      {p.displayName ? ` · ${p.displayName}` : ''}
+                    </button>
+                  ))}
+                  <button className="guide-link" onClick={() => pickPort('')}>
+                    cancel
+                  </button>
+                </div>
+              )}
+              {!serial.supported && <p className="pl-hint">Web Serial needs Chrome, Edge, or the desktop app.</p>}
+              {connected && serial.firmware && <p className="pl-hint">{serial.firmware}</p>}
+              {connected && <p className="pl-hint">Home the printhead once after power-on so the printer knows where it is.</p>}
+            </div>
+          ) : (
           <div className="pl-group">
             <div className="pl-group-head">
               <span className="sec-title">connection</span>
@@ -218,6 +292,7 @@ export function PlotterPanel({ layout, settings, onSettings, statusSlot, objects
               {connected ? 'Reconnect' : 'Connect'}
             </button>
           </div>
+          )}
 
           <div className="pl-group">
             <span className="sec-title">placement · {g.widthMM.toFixed(0)} × {g.heightMM.toFixed(0)} mm</span>
@@ -242,16 +317,25 @@ export function PlotterPanel({ layout, settings, onSettings, statusSlot, objects
               {num('travelZ', 'pen-up z', 0.5)}
             </div>
             <button
-              className="btn"
+              className={`btn ${homeArmed ? 'btn--stop' : ''}`}
               disabled={busy || !connected}
-              title="Homing presses the toolhead toward the bed — remove the pen first!"
+              title={
+                isSerial
+                  ? 'Homes X/Y/Z to the endstop switches — required once after power-on'
+                  : 'Homing presses the toolhead toward the bed — remove the pen first!'
+              }
               onClick={() => {
-                if (window.confirm('Homing presses the toolhead down to find the bed.\nIs the pen removed?')) {
-                  run('Home', () => bridge.gcode(['G28']))
+                clearTimeout(homeArmTimer.current)
+                if (!homeArmed) {
+                  setHomeArmed(true)
+                  homeArmTimer.current = window.setTimeout(() => setHomeArmed(false), 6000)
+                  return
                 }
+                setHomeArmed(false)
+                run('Home', () => driver.gcode(['G28']))
               }}
             >
-              Home Printhead
+              {homeArmed ? (isSerial ? 'Pen clear of the bed? Click again' : 'Pen removed? Click again') : 'Home Printhead'}
             </button>
           </div>
 

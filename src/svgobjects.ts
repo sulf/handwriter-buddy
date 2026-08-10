@@ -1,4 +1,3 @@
-import { BED } from './plotter'
 
 /** An imported SVG drawing placed on the bed. */
 export interface SvgObject {
@@ -34,7 +33,7 @@ const POINT_BUDGET = 4000
  * outline becomes a line for the pen; fills and colors are discarded, which
  * is exactly what plotting it would look like.
  */
-export async function importSvg(file: File): Promise<SvgObject> {
+export async function importSvg(file: File, bed: number): Promise<SvgObject> {
   const text = await file.text()
   const doc = new DOMParser().parseFromString(text, 'image/svg+xml')
   const svg = doc.documentElement
@@ -105,8 +104,8 @@ export async function importSvg(file: File): Promise<SvgObject> {
       name: file.name.replace(/\.svg$/i, ''),
       polylines: norm,
       aspect: h / w,
-      cx: BED / 2,
-      cy: BED / 2,
+      cx: bed / 2,
+      cy: bed / 2,
       wMM: 60,
       rot: 0,
     }

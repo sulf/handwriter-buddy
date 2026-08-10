@@ -38,7 +38,37 @@ export const DEFAULT_PLOT: PlotSettings = {
   lineHeight: 1,
 }
 
-export const BED = 180 // A1 Mini bed is 180×180 mm
+export type PrinterKind = 'a1mini' | 'ender3'
+
+export interface PrinterProfile {
+  kind: PrinterKind
+  name: string
+  /** square bed side, mm */
+  bed: number
+  /** how the printer is reached — decides which connection UI/driver to use */
+  link: 'lan' | 'serial'
+  defaults: Partial<PlotSettings>
+}
+
+export const PRINTERS: Record<PrinterKind, PrinterProfile> = {
+  a1mini: { kind: 'a1mini', name: 'A1 Mini', bed: 180, link: 'lan', defaults: {} },
+  ender3: {
+    kind: 'ender3',
+    name: 'Ender 3',
+    bed: 220,
+    link: 'serial',
+    defaults: {
+      originY: 180,
+      // Marlin mis-places absolute moves before homing, and the Ender 3's
+      // fixed Z endstop makes homing pen-safe — so home by default.
+      homeFirst: true,
+      feedDraw: 1800,
+      feedTravel: 4800,
+    },
+  },
+}
+
+export const defaultSettings = (kind: PrinterKind): PlotSettings => ({ ...DEFAULT_PLOT, ...PRINTERS[kind].defaults })
 
 export interface PlotterCreds {
   ip: string
@@ -48,21 +78,41 @@ export interface PlotterCreds {
 
 export const LS_KEY = 'hwb-plotter'
 
-/** Load persisted printer credentials and plot settings. */
-export function loadStored(): { creds: PlotterCreds; settings: PlotSettings } {
+export interface StoredState {
+  printer: PrinterKind
+  creds: PlotterCreds
+  settings: Record<PrinterKind, PlotSettings>
+}
+
+/** Load persisted printer choice, credentials, and per-printer plot settings. */
+export function loadStored(): StoredState {
   try {
     const raw = localStorage.getItem(LS_KEY)
     if (raw) {
       const p = JSON.parse(raw)
+      // pre-Ender-3 versions stored a single settings object — it was the A1's
+      const legacy = typeof p.settings?.letterHMM === 'number' ? p.settings : null
       return {
+        printer: p.printer === 'ender3' ? 'ender3' : 'a1mini',
         creds: { ip: '', accessCode: '', serial: '', ...p.creds },
-        settings: { ...DEFAULT_PLOT, ...p.settings },
+        settings: {
+          a1mini: { ...defaultSettings('a1mini'), ...(legacy ?? p.settings?.a1mini) },
+          ender3: { ...defaultSettings('ender3'), ...(legacy ? {} : p.settings?.ender3) },
+        },
       }
     }
   } catch {
     // fall through to defaults
   }
-  return { creds: { ip: '', accessCode: '', serial: '' }, settings: DEFAULT_PLOT }
+  return {
+    printer: 'a1mini',
+    creds: { ip: '', accessCode: '', serial: '' },
+    settings: { a1mini: defaultSettings('a1mini'), ender3: defaultSettings('ender3') },
+  }
+}
+
+export function saveStored(s: StoredState) {
+  localStorage.setItem(LS_KEY, JSON.stringify(s))
 }
 
 function strokePoints(d: string): [number, number][] {
@@ -103,7 +153,7 @@ export interface GcodeResult {
  * the front, so the origin is the text's top-left and lines advance toward
  * the front of the bed.
  */
-export function layoutToGcode(layout: TextLayout, s: PlotSettings, objects: SvgObject[] = []): GcodeResult {
+export function layoutToGcode(layout: TextLayout, s: PlotSettings, bed: number, objects: SvgObject[] = []): GcodeResult {
   const warnings: string[] = []
   const scale = s.letterHMM / CAP_HEIGHT
   const heightMM = layout.height * scale
@@ -162,19 +212,27 @@ export function layoutToGcode(layout: TextLayout, s: PlotSettings, objects: SvgO
 
   // finish: lift the pen well clear and center the head over the bed
   lines.push(`G1 Z${fmt(Math.min(s.travelZ + 40, 120))} F3000`)
-  lines.push(`G1 X${BED / 2} Y${BED / 2} F${s.feedTravel}`)
+  lines.push(`G1 X${bed / 2} Y${bed / 2} F${s.feedTravel}`)
   lines.push('M400')
 
   const textWidthMM = layout.width * scale
   if (layout.glyphs.length === 0 && objects.length === 0)
     warnings.push('Nothing to plot — the message is empty.')
-  if (minX < 0 || minY < 0 || maxX > BED || maxY > BED) {
+  if (minX < 0 || minY < 0 || maxX > bed || maxY > bed) {
     warnings.push(
-      `Plot exceeds the ${BED}×${BED} mm bed (X ${fmt(minX)}–${fmt(maxX)}, Y ${fmt(minY)}–${fmt(maxY)}). ` +
+      `Plot exceeds the ${bed}×${bed} mm bed (X ${fmt(minX)}–${fmt(maxX)}, Y ${fmt(minY)}–${fmt(maxY)}). ` +
         'Reduce width or move the origin.',
     )
   }
   return { lines, widthMM: textWidthMM, heightMM, warnings }
+}
+
+/** What the panel needs from a printer backend — the LAN bridge and the
+ *  WebSerial Marlin driver both satisfy this shape. */
+export interface PlotterDriver {
+  gcode(lines: string[]): Promise<unknown>
+  plot(lines: string[]): Promise<unknown>
+  stop(): Promise<unknown>
 }
 
 const BRIDGE = 'http://localhost:8931'
