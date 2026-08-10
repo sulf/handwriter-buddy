@@ -11,9 +11,10 @@ the print bed, press **Plot** — and a real pen writes it in connected cursive.
 - **Single-stroke handwriting** — glyphs are [Hershey fonts](https://en.wikipedia.org/wiki/Hershey_fonts)
   (real pen paths, not filled outlines), with geometric letter joins so cursive
   flows like an actual hand, plus a humanized print hand with per-letter wobble.
-- **True-scale bed preview** — a 180×180 mm canvas; click or drag to place the
-  text's top-left corner, size in real millimeters of cap height, automatic
-  wrapping at the bed edge, adjustable line height.
+- **True-scale bed preview** — a canvas matching the selected printer's bed
+  (180×180 mm A1 Mini, 220×220 mm Ender 3); click or drag to place the text's
+  top-left corner, size in real millimeters of cap height, automatic wrapping
+  at the bed edge, adjustable line height.
 - **Direct printer control** — connects to the A1 Mini over LAN (MQTT) or to
   an Ender 3 over USB (Web Serial), streams G-code paced so nothing is
   dropped, with jog controls, guided pen-height calibration, dry-run mode,
