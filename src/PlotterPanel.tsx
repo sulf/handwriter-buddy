@@ -184,7 +184,7 @@ export function PlotterPanel({ layout, settings, onSettings, statusSlot, objects
           </span>
           {connected && (isSerial ? serial.firmware || serial.port : state?.ip) ? (
             <span className="pl-status-ip">{isSerial ? serial.firmware ?? serial.port : state?.ip}</span>
-          ) : isSerial ? null : (
+          ) : (
             <button className="guide-link" onClick={() => setGuideOpen(true)}>
               setup guide
             </button>
@@ -198,6 +198,8 @@ export function PlotterPanel({ layout, settings, onSettings, statusSlot, objects
           connect={() => bridge.connect(creds.ip.trim(), creds.accessCode.trim(), creds.serial.trim())}
           connected={connected}
           bridgeUp={bridgeUp}
+          printer={printer}
+          onConnectUsb={() => run('Connect', () => marlin.connect())}
         />
         {plotting && (
           <div className="hud-bar">
@@ -234,7 +236,12 @@ export function PlotterPanel({ layout, settings, onSettings, statusSlot, objects
 
           {isSerial ? (
             <div className="pl-group">
-              <span className="sec-title">connection · USB</span>
+              <div className="pl-group-head">
+                <span className="sec-title">connection · USB</span>
+                <button className="guide-link" onClick={() => setGuideOpen(true)}>
+                  setup guide
+                </button>
+              </div>
               <button
                 className="btn"
                 disabled={busy || !serial.supported}
