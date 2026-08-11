@@ -115,6 +115,10 @@ Handwriting glyphs are derived from the public-domain
 US NBS, 1967), via the [hersheytext](https://github.com/techninja/hersheytext)
 JSON conversion (MIT).
 
+## Contributors
+
+See [CONTRIBUTORS.md](CONTRIBUTORS.md) for a list of contributors to this project.
+
 ## License
 
 [MIT](LICENSE) © 2026 Ulf Schwekendiek <sulf@me.com>
