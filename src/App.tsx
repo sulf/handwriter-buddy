@@ -1,22 +1,29 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
+export interface SerialPortChoice {
+  portId: string
+  portName: string
+  displayName: string
+}
+
 declare global {
   interface Window {
     hwb?: {
       onUpdateReady: (cb: (version: string) => void) => void
       restartToUpdate: () => void
+      onSerialPorts?: (cb: (ports: SerialPortChoice[]) => void) => void
+      chooseSerialPort?: (portId: string) => void
     }
   }
 }
 import { CAP_HEIGHT, FONTS, layoutText, type FontKey } from './hershey'
 import { PlotterPanel } from './PlotterPanel'
-import { BED, loadStored, type PlotSettings } from './plotter'
+import { loadStored, PRINTERS, saveStored, type PlotSettings, type PrinterKind } from './plotter'
 import { importSvg, type SvgObject } from './svgobjects'
 import './App.css'
 
-// preview = the A1 Mini bed at true scale: 180 mm → 720 px (4 px/mm)
+// preview = the printer bed at true scale, 4 px/mm
 const K = 4
-const BED_PX = BED * K
 const INK = '#223a70'
 const PEN_WIDTH = 2
 
@@ -29,7 +36,14 @@ Yours, truly`
 export default function App() {
   const [text, setText] = useState(DEFAULT_TEXT)
   const [fontKey, setFontKey] = useState<FontKey>('cursive')
-  const [plotSettings, setPlotSettings] = useState<PlotSettings>(() => loadStored().settings)
+  const stored = useRef(loadStored())
+  const [printer, setPrinter] = useState<PrinterKind>(stored.current.printer)
+  const [settingsMap, setSettingsMap] = useState(stored.current.settings)
+  const [creds, setCreds] = useState(stored.current.creds)
+  const plotSettings = settingsMap[printer]
+  const setPlotSettings = (s: PlotSettings) => setSettingsMap((m) => ({ ...m, [printer]: s }))
+  const BED = PRINTERS[printer].bed
+  const BED_PX = BED * K
   const [statusSlot, setStatusSlot] = useState<HTMLDivElement | null>(null)
   const [updateVersion, setUpdateVersion] = useState<string | null>(null)
   const [objects, setObjects] = useState<SvgObject[]>([])
@@ -40,6 +54,10 @@ export default function App() {
   useEffect(() => {
     window.hwb?.onUpdateReady((v) => setUpdateVersion(v))
   }, [])
+
+  useEffect(() => {
+    saveStored({ printer, creds, settings: settingsMap })
+  }, [printer, creds, settingsMap])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -140,7 +158,7 @@ export default function App() {
       lines.push(<line key={`h${mm}`} x1="0" y1={mm * K} x2={BED_PX} y2={mm * K} />)
     }
     return lines
-  }, [])
+  }, [BED, BED_PX])
 
   return (
     <div className="app">
@@ -151,7 +169,7 @@ export default function App() {
             className="card card--aim"
             viewBox={`0 0 ${BED_PX} ${BED_PX}`}
             role="img"
-            aria-label="A1 Mini bed preview — click to place the text's top-left corner"
+            aria-label={`${PRINTERS[printer].name} bed preview — click to place the text's top-left corner`}
             onPointerDown={onBedDown}
             onPointerMove={onBedMove}
             onPointerUp={() => {
@@ -280,14 +298,14 @@ export default function App() {
             <input
               type="range"
               min="1.5"
-              max="14"
+              max="40"
               step="0.5"
               value={plotSettings.letterHMM}
               onChange={(e) => setPlotSettings({ ...plotSettings, letterHMM: Number(e.target.value) })}
             />
           </label>
           <label className="field">
-            <span>line height</span>
+            <span>line height · {plotSettings.lineHeight.toFixed(2)}×</span>
             <input
               type="range"
               min="0.7"
@@ -317,7 +335,7 @@ export default function App() {
               e.target.value = ''
               for (const f of files) {
                 try {
-                  const obj = await importSvg(f)
+                  const obj = await importSvg(f, BED)
                   setObjects((os) => [...os, obj])
                   setSelectedId(obj.id)
                 } catch (err) {
@@ -356,6 +374,11 @@ export default function App() {
           onSettings={setPlotSettings}
           statusSlot={statusSlot}
           objects={objects}
+          printer={printer}
+          onPrinter={setPrinter}
+          creds={creds}
+          onCreds={setCreds}
+          bed={BED}
         />
       </aside>
 

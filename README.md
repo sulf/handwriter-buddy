@@ -1,8 +1,8 @@
 # Handwriter Buddy
 
-Turn a Bambu Lab **A1 Mini** with a pen attachment into a handwriting machine.
-Type a message, aim it on a true-scale preview of the print bed, press **Plot**
-— and a real pen writes it in connected cursive.
+Turn a Bambu Lab **A1 Mini** or a Creality **Ender 3** with a pen attachment
+into a handwriting machine. Type a message, aim it on a true-scale preview of
+the print bed, press **Plot** — and a real pen writes it in connected cursive.
 
 ![Handwriter Buddy — bed preview with handwriting and controls](docs/screenshot.png)
 
@@ -11,13 +11,14 @@ Type a message, aim it on a true-scale preview of the print bed, press **Plot**
 - **Single-stroke handwriting** — glyphs are [Hershey fonts](https://en.wikipedia.org/wiki/Hershey_fonts)
   (real pen paths, not filled outlines), with geometric letter joins so cursive
   flows like an actual hand, plus a humanized print hand with per-letter wobble.
-- **True-scale bed preview** — a 180×180 mm canvas; click or drag to place the
-  text's top-left corner, size in real millimeters of cap height, automatic
-  wrapping at the bed edge, adjustable line height.
-- **Direct printer control** — connects to the A1 Mini over LAN (MQTT), streams
-  G-code paced to real motion time so nothing is dropped, with jog controls,
-  guided pen-height calibration, dry-run mode, and one-click stop that lifts
-  the pen.
+- **True-scale bed preview** — a canvas matching the selected printer's bed
+  (180×180 mm A1 Mini, 220×220 mm Ender 3); click or drag to place the text's
+  top-left corner, size in real millimeters of cap height, automatic wrapping
+  at the bed edge, adjustable line height.
+- **Direct printer control** — connects to the A1 Mini over LAN (MQTT) or to
+  an Ender 3 over USB (Web Serial), streams G-code paced so nothing is
+  dropped, with jog controls, guided pen-height calibration, dry-run mode,
+  and one-click stop that lifts the pen.
 - **Built-in setup guide** — an illustrated walkthrough for putting the printer
   into LAN-Only + Developer Mode and connecting.
 
@@ -40,6 +41,8 @@ npm run app:dev    # electron shell pointed at the dev server
 
 ## Printer setup
 
+### A1 Mini (LAN)
+
 The app includes a step-by-step guide (the "setup guide" link), in short:
 
 1. Computer and printer must be on the **same network**.
@@ -48,11 +51,36 @@ The app includes a step-by-step guide (the "setup guide" link), in short:
    commands).
 3. Enter the IP, access code, and serial (Settings → Device → Printer SN).
 
+### Ender 3 (USB)
+
+Pick **Ender 3** under printer & calibration, plug the printer in over USB,
+and click **Connect USB** (115200 baud, plain Marlin G-code over Web Serial —
+works in Chrome/Edge and in the desktop app; stock Creality firmware is fine).
+Home the printhead once after power-on so the printer knows where it is, then
+calibrate pen height as usual.
+
 Mount a pen, calibrate pen-down/pen-up Z with the jog pad, and plot.
 **Never home the printer with the pen mounted** — homing presses the toolhead
 into the bed.
 
 ## Pen attachment hardware
+
+### Ender 3
+
+Any pen mount that holds the pen rigidly next to the nozzle works — pick the
+one matching your toolhead:
+
+| Ender 3 variant | Mount |
+|---|---|
+| Ender 3 (stock fan shroud) | [Snap-fit pen holder by pascalmakes](https://www.thingiverse.com/thing:3365530) — no screws, clips onto the fan housing |
+| Ender 3 / Pro | [Pen holder with diameter adapters by horatio1989](https://www.thingiverse.com/thing:4645372) — 8–16 mm pens |
+| Ender 3 (universal, screws into the hotend cover) | [Universal pen mount by Giorgio Miglia](https://www.printables.com/model/438157-ender-3-universal-pen-mount-plotter) |
+| Ender 3 V3 KE | [Pen holder by 3D PrintVerse](https://www.printables.com/model/1598491-pen-holder-for-ender-3-v3-ke) |
+
+Mount the pen so its tip sits **above** the nozzle while homing (or home
+before mounting the pen), then calibrate pen-down/pen-up Z with the jog pad.
+
+### A1 Mini
 
 The [`hardware/`](docs/hardware) folder contains printable STEP models for the A1
 Mini pen attachment:
